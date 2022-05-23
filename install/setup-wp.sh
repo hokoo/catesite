@@ -24,3 +24,4 @@ fi
 echo "WP database init"
 wp core install --url=$PROJECT_BASE_URL --title="$WP_TITLE" --admin_user=$WP_ADMIN --admin_password=$WP_ADMIN_PASS --admin_email=$WP_ADMIN_EMAIL --skip-email
 echo "Done."
+printr "WP User Admin: %s \nWP User Pass: %s\n" $WP_ADMIN $WP_ADMIN_PASS
