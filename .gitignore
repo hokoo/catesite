@@ -15,3 +15,8 @@ install/php-fpm/error.log
 !wp-content/themes/
 wp-content/themes/*
 !wp-content/themes/cate-theme/
+
+
+!wp-content/uploads/
+wp-content/uploads/*
+!wp-content/uploads/20*
