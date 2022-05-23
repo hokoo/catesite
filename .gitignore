@@ -2,7 +2,7 @@ vendor
 .env
 
 wp/
-wp-content/
+wp-content/*
 index.php
 wp-config.php
 
@@ -11,3 +11,7 @@ wp-config.php
 # logs
 install/nginx/*
 install/php-fpm/error.log
+
+!wp-content/themes/
+wp-content/themes/*
+!wp-content/themes/cate-theme/
