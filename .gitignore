@@ -1,0 +1,13 @@
+vendor
+.env
+
+wp/
+wp-content/
+index.php
+wp-config.php
+
+.idea/*
+
+# logs
+install/nginx/*
+install/php-fpm/error.log
