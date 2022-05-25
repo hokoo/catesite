@@ -4,8 +4,8 @@ echo -n "Script will remove all configs and generated folders. Sure? (y/n) "
 read item
 case "$item" in
     y|Y)
+    rm -rf ./vendor
     rm -rf ./wp
-    rm -rf ./wp-content
     rm -f ./wp-config.php
     rm -rf ./install/nginx
     rm -f ./install/php-fpm/error.log
