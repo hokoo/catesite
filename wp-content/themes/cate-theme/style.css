@@ -8,10 +8,6 @@ Version:        0.1.0
 
 @import url("../twentytwenty/style.css");
 
-#site-header{
-    background-color: #e5e5e5;
-}
-
 header nav li a,
 .menu-top nav li a{
     color: #5c5c5c !important;
@@ -21,9 +17,7 @@ header nav li a,
     display: none;
 }
 
-.page-id-2 .post-inner{
-    /*padding-top: 0 !important;*/
-}
+.page-id-2 .post-inner{}
 
 .page-id-2 .wp-block-gallery,
 .page-id-2 .wp-block-image{
