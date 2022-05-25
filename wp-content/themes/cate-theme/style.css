@@ -7,3 +7,37 @@ Version:        0.1.0
 */
 
 @import url("../twentytwenty/style.css");
+
+#site-header{
+    background-color: #e5e5e5;
+}
+
+header nav li a,
+.menu-top nav li a{
+    color: #5c5c5c !important;
+}
+
+.page-id-2 .entry-header{
+    display: none;
+}
+
+.page-id-2 .post-inner{
+    /*padding-top: 0 !important;*/
+}
+
+.page-id-2 .wp-block-gallery,
+.page-id-2 .wp-block-image{
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.page-id-2 .wp-block-gallery .blocks-gallery-item{
+    margin: 0 !important;
+}
+
+@media (min-width: 1280px){
+    .entry-content > .alignwide {
+        max-width: 140rem !important;
+        width: 140rem !important;
+    }
+}
