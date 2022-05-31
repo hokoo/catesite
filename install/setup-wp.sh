@@ -6,8 +6,12 @@ echo "WP setup preparing..."
 . ./.env
 
 # prepare file structure
+mkdir -p ./tmp
 [ ! -d ./wp-content/ ] && mkdir -p ./wp-content/
-cp -r ./wordpress/wp-content/* ./wp-content
+cp -r ./wordpress/wp-content/* ./tmp
+rm -rf ./tmp/themes/
+cp -r ./tmp/ ./wp-content/
+rm -rf ./tmp/
 
 [ ! -f ./index.php ] && echo "<?php
 // WordPress view bootstrapper
