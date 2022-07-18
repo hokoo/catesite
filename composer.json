@@ -38,6 +38,7 @@
     "wpackagist-plugin/wp-smtp": "^1.1",
     "johnbillion/query-monitor": "^3.7",
     "wpackagist-plugin/contact-form-7": "5.5.6.1",
+    "wpackagist-plugin/cf7-telegram": "^0.8.0",
     "wpackagist-plugin/wp-data-logger": "^2.0",
     "wpackagist-plugin/custom-post-type-ui": "^1.12",
     "wpackagist-theme/twentytwenty": "^2.0"
