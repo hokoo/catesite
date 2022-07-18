@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "2b2ae76f001be3a9c2b85f8dcf80ac61",
+    "content-hash": "86f0442ea015460648b4bd52f9e5d023",
     "packages": [
         {
             "name": "composer/installers",
@@ -428,6 +428,24 @@
                 "source": "https://github.com/serbanghita/Mobile-Detect/tree/2.8.39"
             },
             "time": "2022-02-17T19:24:25+00:00"
+        },
+        {
+            "name": "wpackagist-plugin/cf7-telegram",
+            "version": "0.8",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/cf7-telegram/",
+                "reference": "tags/0.8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/cf7-telegram.0.8.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/cf7-telegram/"
         },
         {
             "name": "wpackagist-plugin/classic-editor",
