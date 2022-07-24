@@ -12,22 +12,6 @@
     {
       "type": "composer",
       "url": "https://wpackagist.org"
-    },
-    {
-      "type": "package",
-      "package": {
-        "name": "rarst/wordpress",
-        "type": "wordpress-core",
-        "version": "5.2",
-        "source": {
-          "url": "https://github.com/WordPress/WordPress",
-          "type": "git",
-          "reference": "5.2"
-        },
-        "require": {
-          "johnpbloch/wordpress-core-installer": "~0.1"
-        }
-      }
     }
   ],
   "require": {
