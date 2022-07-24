@@ -16,7 +16,7 @@ function site_is_ssl() {
 
 $host = (isset($_SERVER['HTTP_HOST'])) ? $_SERVER['HTTP_HOST']: '%s';
 define( 'WP_CONTENT_URL', ( site_is_ssl() ? 'https' : 'http' ) . '://' . $host . '/wp-content' );
-const WP_CONTENT_DIR = CS_ROOT . '/wp-content';
+const WP_CONTENT_DIR = CS_ROOT . 'wp-content/';
 if ( ! defined('ABSPATH') ) {
 	define( 'ABSPATH', CS_ROOT . 'wordpress/' );
 }
