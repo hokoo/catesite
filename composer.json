@@ -26,7 +26,8 @@
     "wpackagist-plugin/wp-data-logger": "^2.0",
     "wpackagist-plugin/custom-post-type-ui": "^1.12",
     "wpackagist-theme/twentytwenty": "^2.0",
-    "wpackagist-plugin/image-compare-block": "^1.5"
+    "wpackagist-plugin/image-compare-block": "^1.5",
+    "wpackagist-plugin/lightbox-popup": "^2.1"
   },
   "autoload": {
   },
