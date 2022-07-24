@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "73e058a3ae8cccb407ab4efba1a7a090",
+    "content-hash": "9b9e6140a0db08e6e243d5c5fa5ab234",
     "packages": [
         {
             "name": "composer/installers",
@@ -518,6 +518,24 @@
             },
             "type": "wordpress-plugin",
             "homepage": "https://wordpress.org/plugins/image-compare-block/"
+        },
+        {
+            "name": "wpackagist-plugin/lightbox-popup",
+            "version": "2.1.4",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/lightbox-popup/",
+                "reference": "tags/2.1.4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/lightbox-popup.2.1.4.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/lightbox-popup/"
         },
         {
             "name": "wpackagist-plugin/wp-data-logger",
