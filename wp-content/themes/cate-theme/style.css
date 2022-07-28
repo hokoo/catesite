@@ -33,6 +33,10 @@ header nav li a,
     margin: 0;
 }
 
+.singular .entry-header {
+    padding: 1rem 0;
+}
+
 @media (min-width: 1280px){
     .entry-content > .alignwide {
         max-width: 140rem !important;
