@@ -29,6 +29,11 @@ header nav li a,
     margin: 0 !important;
 }
 
+.page-id-2 .wp-block-gallery.has-nested-images.columns-default figure.wp-block-image:not(#individual-image){
+    width: 25% !important;
+    margin-right: 0 !important;
+}
+
 .wp-block-gallery ul{
     margin: 0;
 }
