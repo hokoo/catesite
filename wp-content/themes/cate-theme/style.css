@@ -37,6 +37,10 @@ header nav li a,
     padding: 1rem 0;
 }
 
+button.close-nav-toggle{
+    outline: none;
+}
+
 @media (min-width: 1280px){
     .entry-content > .alignwide {
         max-width: 140rem !important;
