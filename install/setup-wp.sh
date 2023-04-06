@@ -37,6 +37,6 @@ case "$item" in
       ;;
 esac
 
-echo "Do not forget renew your hosts file 127.0.0.1 domain.loc"
+echo "Do not forget renew your hosts file 127.0.0.1 cate.loc"
 echo "Done."
 

@@ -1,6 +1,6 @@
-ARG NWP_PHP_VER
+ARG PHP_TAG
 
-FROM wodby/wordpress-php:$NWP_PHP_VER
+FROM wodby/wordpress-php:$PHP_TAG
 
 LABEL maintaner="Igor Tron <public@itron.pro>"
 
