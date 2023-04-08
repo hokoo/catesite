@@ -15,6 +15,8 @@ jobs:
           SSH_KEY: ${{ secrets.SSH_KEY }}
           SERVER: ${{ secrets.SERVER }}
           USER: ${{ secrets.USER }}
+
+      - id: builder
         run: |
           sudo apt-get update -y && sudo apt-get -y install openssh-client curl rsync git composer
           mkdir -p ~/.ssh
@@ -23,3 +25,6 @@ jobs:
           ssh-add - <<< $SSH_KEY
           composer install --no-dev
           echo "composer has installed";
+
+      - id: deploy
+        run: echo "deploy to $SERVER"
