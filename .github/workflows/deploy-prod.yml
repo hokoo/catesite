@@ -23,5 +23,5 @@ jobs:
           ssh-add - <<< $SSH_KEY
           composer install --no-dev
           echo "composer has installed"
-          ssh -p22 $USER@$SERVER "cd /srb/web/ && mkdir deploy"
+          ssh -p22 $USER@$SERVER "cd /srv/web/ && mkdir deploy"
           rsync -rav -e ssh --delete ./ $USER@$SERVER:/srv/web/deploy
