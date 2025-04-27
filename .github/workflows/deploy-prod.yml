@@ -1,0 +1,27 @@
+name: Production Deploy
+
+on:
+  push:
+    branches: [ actions ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run deploy
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SERVER: ${{ secrets.SERVER }}
+          USER: ${{ secrets.USER }}
+        run: |
+          sudo apt-get update -y && sudo apt-get -y install openssh-client curl rsync git composer
+          mkdir -p ~/.ssh
+          printf "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
+          eval $(ssh-agent -s)
+          ssh-add - <<< $SSH_KEY
+          composer install --no-dev
+          echo "composer has installed"
+          ssh -p22 $USER@$SERVER "cd /srv/web/ && mkdir deploy"
+          rsync -rav -e ssh --delete ./ $USER@$SERVER:/srv/web/deploy
