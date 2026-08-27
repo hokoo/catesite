@@ -52,3 +52,35 @@ button.close-nav-toggle{
         width: 140rem !important;
     }
 }
+
+@media (max-width: 999px){
+    body {
+        padding-top: var(--cate-mobile-header-height, 8.4rem);
+    }
+
+    #site-header {
+        left: 0;
+        position: fixed;
+        right: 0;
+        top: 0;
+        width: 100%;
+        z-index: 90;
+    }
+
+    .overlay-header #site-header {
+        position: fixed;
+        z-index: 90;
+    }
+
+    .admin-bar #site-header,
+    .admin-bar.overlay-header #site-header {
+        top: 32px;
+    }
+}
+
+@media (max-width: 782px){
+    .admin-bar #site-header,
+    .admin-bar.overlay-header #site-header {
+        top: 46px;
+    }
+}
