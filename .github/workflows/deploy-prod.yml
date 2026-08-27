@@ -105,7 +105,7 @@ jobs:
 
       - name: Configure SSH
         env:
-          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
           DEPLOY_USER: ${{ secrets.USER }}
           DEPLOY_KEY: ${{ secrets.SSH_KEY }}
         run: |
@@ -122,7 +122,7 @@ jobs:
 
       - name: Upload release
         env:
-          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
           DEPLOY_USER: ${{ secrets.USER }}
           RELEASE_ID: ${{ github.run_id }}
         run: |
@@ -149,7 +149,7 @@ jobs:
 
       - name: Activate release
         env:
-          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
           DEPLOY_USER: ${{ secrets.USER }}
           RELEASE_ID: ${{ github.run_id }}
           RELEASE_SHA: ${{ github.sha }}

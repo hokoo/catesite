@@ -11,9 +11,8 @@ The deploy workflow runs the existing Playwright e2e tests before publishing a r
 
 ## Required Secrets
 
-The workflows use the existing SSH secret names from the legacy workflow:
+The workflows SSH to `kate-tron.com` and use these existing SSH secret names from the legacy workflow:
 
-- `SERVER`: production server host or IP.
 - `USER`: SSH user with permission to manage `/srv/web/kate-tron.com` and `/srv/web/kate-tron`.
 - `SSH_KEY`: private SSH key for the deploy user.
 

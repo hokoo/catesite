@@ -39,7 +39,7 @@ jobs:
 
       - name: Configure SSH
         env:
-          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
           DEPLOY_USER: ${{ secrets.USER }}
           DEPLOY_KEY: ${{ secrets.SSH_KEY }}
         run: |
@@ -56,7 +56,7 @@ jobs:
 
       - name: Activate rollback release
         env:
-          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
           DEPLOY_USER: ${{ secrets.USER }}
           ROLLBACK_RUN_ID: ${{ inputs.run_id }}
           RESTORE_DB: ${{ inputs.restore_db }}
