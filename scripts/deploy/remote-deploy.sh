@@ -16,6 +16,8 @@ ORIGIN_HOST="${ORIGIN_HOST:-kate-tron.com}"
 AUTO_RESTORE_DB_ON_FAIL="${AUTO_RESTORE_DB_ON_FAIL:-true}"
 KEEP_RELEASES="${KEEP_RELEASES:-5}"
 KEEP_BACKUPS="${KEEP_BACKUPS:-5}"
+WP_CLI_BIN="${WP_CLI_BIN:-wp}"
+WP_CLI_PHP="${WP_CLI_PHP:-php8.5}"
 
 RELEASE_DIR="$RELEASES_DIR/$RELEASE_ID"
 DB_BEFORE_BACKUP="$BACKUPS_DIR/db/db-before-$RELEASE_ID.sql"
@@ -34,11 +36,11 @@ require_numeric_release_id() {
 }
 
 wp_cmd() {
-	wp --allow-root --path="$APP_ROOT" "$@"
+	"$WP_CLI_PHP" "$(command -v "$WP_CLI_BIN")" --allow-root --path="$APP_ROOT/wordpress" "$@"
 }
 
 release_wp_cmd() {
-	wp --allow-root --path="$RELEASE_DIR" "$@"
+	"$WP_CLI_PHP" "$(command -v "$WP_CLI_BIN")" --allow-root --path="$RELEASE_DIR/wordpress" "$@"
 }
 
 detect_owner() {
@@ -81,6 +83,20 @@ remove_tree_if_exists() {
 
 	find "$path" -depth -mindepth 1 -delete
 	rmdir "$path"
+}
+
+app_root_resolves_to_current() {
+	[ -L "$APP_ROOT" ] || return 1
+	[ "$(readlink -f "$APP_ROOT" 2>/dev/null)" = "$(readlink -f "$CURRENT_LINK" 2>/dev/null)" ]
+}
+
+ensure_app_root_symlink() {
+	if app_root_resolves_to_current; then
+		return 0
+	fi
+
+	ln -sfn "$CURRENT_LINK" "$APP_ROOT.next"
+	mv -Tf "$APP_ROOT.next" "$APP_ROOT"
 }
 
 ensure_shared_runtime() {
@@ -135,7 +151,8 @@ EOF
 }
 
 preflight_release() {
-	command -v wp >/dev/null || die "wp-cli is not installed on the server"
+	command -v "$WP_CLI_BIN" >/dev/null || die "wp-cli is not installed on the server"
+	command -v "$WP_CLI_PHP" >/dev/null || die "$WP_CLI_PHP is not installed on the server"
 	command -v curl >/dev/null || die "curl is not installed on the server"
 	command -v rsync >/dev/null || die "rsync is not installed on the server"
 	[ -d "$RELEASE_DIR/wordpress" ] || die "WordPress core directory is missing in release"
@@ -173,15 +190,14 @@ switch_release() {
 	mv -Tf "$CURRENT_LINK.next" "$CURRENT_LINK"
 
 	if [ -L "$APP_ROOT" ]; then
-		ln -sfn "$CURRENT_LINK" "$APP_ROOT.next"
-		mv -Tf "$APP_ROOT.next" "$APP_ROOT"
+		ensure_app_root_symlink
 	elif [ -e "$APP_ROOT" ]; then
 		LEGACY_BACKUP_DIR="$BACKUPS_DIR/code/live-root-before-release-$RELEASE_ID"
 		[ ! -e "$LEGACY_BACKUP_DIR" ] || die "legacy backup already exists: $LEGACY_BACKUP_DIR"
 		mv "$APP_ROOT" "$LEGACY_BACKUP_DIR"
 		ln -s "$CURRENT_LINK" "$APP_ROOT"
 	else
-		ln -s "$CURRENT_LINK" "$APP_ROOT"
+		ensure_app_root_symlink
 	fi
 
 	SWITCHED=1
@@ -195,8 +211,7 @@ rollback_switch_on_error() {
 		if [ -n "$PREVIOUS_RELEASE_DIR" ] && [ -d "$PREVIOUS_RELEASE_DIR" ]; then
 			ln -sfn "$PREVIOUS_RELEASE_DIR" "$CURRENT_LINK.next"
 			mv -Tf "$CURRENT_LINK.next" "$CURRENT_LINK"
-			ln -sfn "$CURRENT_LINK" "$APP_ROOT.next"
-			mv -Tf "$APP_ROOT.next" "$APP_ROOT"
+			ensure_app_root_symlink
 			printf 'Rolled active release back to %s after deployment failure.\n' "$PREVIOUS_RELEASE_DIR" >&2
 		elif [ -n "$LEGACY_BACKUP_DIR" ] && [ -d "$LEGACY_BACKUP_DIR" ]; then
 			if [ -L "$APP_ROOT" ]; then

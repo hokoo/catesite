@@ -25,6 +25,7 @@ env:
   DEPLOY_ROOT: /srv/web/kate-tron
   HEALTHCHECK_URL: https://kate-tron.com/
   ORIGIN_HOST: kate-tron.com
+  DEPLOY_USER: kate_deploy
   EXPECTED_SSH_HOSTKEY_SHA256: "SHA256:UZLkwkrHKjpLXEmCXjCy9/yDHsqH4+US5Y4TvOqb/nw"
 
 jobs:
@@ -40,7 +41,7 @@ jobs:
       - name: Configure SSH
         env:
           DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
-          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
           DEPLOY_KEY: ${{ secrets.SSH_KEY }}
         run: |
           test -n "$DEPLOY_HOST"
@@ -57,7 +58,7 @@ jobs:
       - name: Activate rollback release
         env:
           DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
-          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
           ROLLBACK_RUN_ID: ${{ inputs.run_id }}
           RESTORE_DB: ${{ inputs.restore_db }}
         run: |

@@ -18,6 +18,7 @@ env:
   DEPLOY_ROOT: /srv/web/kate-tron
   HEALTHCHECK_URL: https://kate-tron.com/
   ORIGIN_HOST: kate-tron.com
+  DEPLOY_USER: kate_deploy
   EXPECTED_SSH_HOSTKEY_SHA256: "SHA256:UZLkwkrHKjpLXEmCXjCy9/yDHsqH4+US5Y4TvOqb/nw"
   PHP_VERSION: "8.3"
   NODE_VERSION: "20"
@@ -106,7 +107,7 @@ jobs:
       - name: Configure SSH
         env:
           DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
-          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
           DEPLOY_KEY: ${{ secrets.SSH_KEY }}
         run: |
           test -n "$DEPLOY_HOST"
@@ -123,7 +124,7 @@ jobs:
       - name: Upload release
         env:
           DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
-          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
           RELEASE_ID: ${{ github.run_id }}
         run: |
           SSH_OPTS="-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
@@ -150,7 +151,7 @@ jobs:
       - name: Activate release
         env:
           DEPLOY_HOST: ${{ env.ORIGIN_HOST }}
-          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_USER: ${{ env.DEPLOY_USER }}
           RELEASE_ID: ${{ github.run_id }}
           RELEASE_SHA: ${{ github.sha }}
           RUN_NUMBER: ${{ github.run_number }}

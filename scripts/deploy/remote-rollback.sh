@@ -11,6 +11,8 @@ RESTORE_DB="${RESTORE_DB:-false}"
 HEALTHCHECK_URL="${HEALTHCHECK_URL:-https://kate-tron.com/}"
 ORIGIN_HOST="${ORIGIN_HOST:-kate-tron.com}"
 AUTO_RESTORE_DB_ON_FAIL="${AUTO_RESTORE_DB_ON_FAIL:-true}"
+WP_CLI_BIN="${WP_CLI_BIN:-wp}"
+WP_CLI_PHP="${WP_CLI_PHP:-php8.5}"
 PREVIOUS_RELEASE_DIR=""
 SWITCHED=0
 
@@ -20,7 +22,7 @@ die() {
 }
 
 wp_cmd() {
-	wp --allow-root --path="$APP_ROOT" "$@"
+	"$WP_CLI_PHP" "$(command -v "$WP_CLI_BIN")" --allow-root --path="$APP_ROOT/wordpress" "$@"
 }
 
 remove_file_if_exists() {
@@ -28,6 +30,20 @@ remove_file_if_exists() {
 	if [ -e "$path" ] || [ -L "$path" ]; then
 		unlink "$path"
 	fi
+}
+
+app_root_resolves_to_current() {
+	[ -L "$APP_ROOT" ] || return 1
+	[ "$(readlink -f "$APP_ROOT" 2>/dev/null)" = "$(readlink -f "$CURRENT_LINK" 2>/dev/null)" ]
+}
+
+ensure_app_root_symlink() {
+	if app_root_resolves_to_current; then
+		return 0
+	fi
+
+	ln -sfn "$CURRENT_LINK" "$APP_ROOT.next"
+	mv -Tf "$APP_ROOT.next" "$APP_ROOT"
 }
 
 current_release_id() {
@@ -94,8 +110,7 @@ switch_to_release() {
 	PREVIOUS_RELEASE_DIR="$(readlink -f "$CURRENT_LINK" 2>/dev/null || true)"
 	ln -sfn "$target_dir" "$CURRENT_LINK.next"
 	mv -Tf "$CURRENT_LINK.next" "$CURRENT_LINK"
-	ln -sfn "$CURRENT_LINK" "$APP_ROOT.next"
-	mv -Tf "$APP_ROOT.next" "$APP_ROOT"
+	ensure_app_root_symlink
 	SWITCHED=1
 }
 
@@ -114,8 +129,7 @@ rollback_switch_on_error() {
 	if [ "$SWITCHED" = "1" ] && [ -n "$PREVIOUS_RELEASE_DIR" ] && [ -d "$PREVIOUS_RELEASE_DIR" ]; then
 		ln -sfn "$PREVIOUS_RELEASE_DIR" "$CURRENT_LINK.next"
 		mv -Tf "$CURRENT_LINK.next" "$CURRENT_LINK"
-		ln -sfn "$CURRENT_LINK" "$APP_ROOT.next"
-		mv -Tf "$APP_ROOT.next" "$APP_ROOT"
+		ensure_app_root_symlink
 		printf 'Restored previous release after rollback failure: %s\n' "$PREVIOUS_RELEASE_DIR" >&2
 	fi
 
@@ -128,7 +142,8 @@ rollback_switch_on_error() {
 }
 
 main() {
-	command -v wp >/dev/null || die "wp-cli is not installed on the server"
+	command -v "$WP_CLI_BIN" >/dev/null || die "wp-cli is not installed on the server"
+	command -v "$WP_CLI_PHP" >/dev/null || die "$WP_CLI_PHP is not installed on the server"
 	command -v curl >/dev/null || die "curl is not installed on the server"
 	[ -L "$APP_ROOT" ] || die "$APP_ROOT is not a release symlink yet; rollback is available after the first release-directory deploy"
 
