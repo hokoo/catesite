@@ -50,6 +50,8 @@ done
 docker compose exec -T mysql sh -lc 'mariadb-admin ping -h 127.0.0.1 -u"$MYSQL_USER" -p"$MYSQL_PASSWORD" --silent'
 docker compose exec -T php bash -lc '
 	. ./.env
+	fresh_install=0
+
 	if ! wp core is-installed >/dev/null 2>&1; then
 		wp core install \
 			--url="http://cate.loc" \
@@ -58,6 +60,27 @@ docker compose exec -T php bash -lc '
 			--admin_password="$WP_ADMIN_PASS" \
 			--admin_email="$WP_ADMIN_EMAIL" \
 			--skip-email
+		fresh_install=1
+	fi
+
+	wp theme activate cate-theme
+
+	if [ "$fresh_install" -eq 1 ]; then
+		long_content=""
+		for _ in $(seq 1 80); do
+			long_content="${long_content}<p>Header behavior test content.</p>"
+		done
+
+		page_id="$(wp post create \
+			--post_type=page \
+			--post_status=publish \
+			--post_title="Header Test Content" \
+			--post_content="$long_content" \
+			--porcelain)"
+
+		wp option update show_on_front page
+		wp option update page_on_front "$page_id"
+		wp option update page_for_posts 0
 	fi
 '
 docker compose exec -T php wp option update home http://cate.loc
