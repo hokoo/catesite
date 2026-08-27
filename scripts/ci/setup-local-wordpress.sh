@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+restore_workspace_owner() {
+	if [ "${GITHUB_ACTIONS:-}" = "true" ] && command -v sudo >/dev/null 2>&1; then
+		sudo chown "$(id -u):$(id -g)" .
+	fi
+}
+
+trap restore_workspace_owner EXIT
+
 if [ ! -f .env ]; then
 	cp install/.example/.env.example .env
 fi
@@ -26,6 +34,9 @@ if [ ! -f ./wp-config.php ]; then
 	WPCONFIG=$(< ./install/.example/wp-config.php.template)
 	printf "$WPCONFIG" "$DB_NAME" "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$PROJECT_BASE_URL" > ./wp-config.php
 fi
+
+mkdir -p wp-content/uploads test-results playwright-report
+chmod -R a+rwX wp-content/uploads test-results playwright-report
 
 docker compose up -d --build
 
