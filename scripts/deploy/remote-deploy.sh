@@ -287,8 +287,8 @@ main() {
 	switch_release
 	set_owner "$owner"
 	run_post_switch_tasks
-	healthcheck
 	maintenance_off
+	healthcheck
 	trap - ERR EXIT
 
 	prune_numbered_entries "$RELEASES_DIR" "$KEEP_RELEASES"

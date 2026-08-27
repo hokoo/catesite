@@ -161,6 +161,12 @@ main() {
 
 	require_target "$target_id"
 
+	if [ "$target_id" = "$current_id" ] && [ "$RESTORE_DB" != "true" ]; then
+		healthcheck "$target_id"
+		printf 'Rollback target is already current release: %s\n' "$target_id"
+		return 0
+	fi
+
 	mkdir -p "$BACKUPS_DIR/db"
 	rollback_db_snapshot="$BACKUPS_DIR/db/db-before-rollback-$current_id-to-$target_id-$(date -u +%Y%m%dT%H%M%SZ).sql"
 	wp_cmd db export "$rollback_db_snapshot" --add-drop-table
@@ -180,8 +186,8 @@ main() {
 	wp_cmd core update-db
 	wp_cmd rewrite flush
 	wp_cmd cache flush || true
-	healthcheck "$target_id"
 	maintenance_off
+	healthcheck "$target_id"
 	trap - ERR
 	trap - EXIT
 
