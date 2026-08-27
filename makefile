@@ -27,3 +27,12 @@ connect.nginx:
 
 connect.php.root:
 	docker-compose exec --user=root php bash
+
+test.e2e:
+	npm run test:e2e
+
+test.e2e.local:
+	npm run test:e2e:local
+
+test.e2e.deploy:
+	npm run test:e2e:deploy

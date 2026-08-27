@@ -1,0 +1,17 @@
+{
+  "name": "catesite",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "npm run test:e2e",
+    "test:e2e": "playwright test",
+    "test:e2e:deploy": "playwright test",
+    "test:e2e:install": "playwright install chromium",
+    "test:e2e:local": "E2E_START_SERVER=1 E2E_BASE_URL=http://cate.loc/ playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}
