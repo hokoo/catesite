@@ -1,0 +1,77 @@
+name: Production Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Optional GitHub pipeline run id to activate. Leave empty to roll back one release.
+        required: false
+        type: string
+      restore_db:
+        description: Restore the database snapshot for the target release.
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  APP_ROOT: /srv/web/kate-tron.com
+  DEPLOY_ROOT: /srv/web/kate-tron
+  HEALTHCHECK_URL: https://kate-tron.com/
+  ORIGIN_HOST: kate-tron.com
+  EXPECTED_SSH_HOSTKEY_SHA256: "SHA256:UZLkwkrHKjpLXEmCXjCy9/yDHsqH4+US5Y4TvOqb/nw"
+
+jobs:
+  rollback:
+    name: Rollback
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_KEY"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -T 10 -t ecdsa "$DEPLOY_HOST" > ~/.ssh/known_hosts
+          actual_fingerprint="$(ssh-keygen -lf ~/.ssh/known_hosts | awk 'NR == 1 { print $2 }')"
+          test "$actual_fingerprint" = "$EXPECTED_SSH_HOSTKEY_SHA256"
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Activate rollback release
+        env:
+          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_USER: ${{ secrets.USER }}
+          ROLLBACK_RUN_ID: ${{ inputs.run_id }}
+          RESTORE_DB: ${{ inputs.restore_db }}
+        run: |
+          SSH_OPTS="-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" \
+            "APP_ROOT='$APP_ROOT' DEPLOY_ROOT='$DEPLOY_ROOT' ROLLBACK_RUN_ID='$ROLLBACK_RUN_ID' RESTORE_DB='$RESTORE_DB' HEALTHCHECK_URL='$HEALTHCHECK_URL' ORIGIN_HOST='$ORIGIN_HOST' bash -s" \
+            < scripts/deploy/remote-rollback.sh
+
+      - name: Rollback summary
+        run: |
+          {
+            echo "### Production rollback"
+            echo ""
+            echo "- Requested run id: \`${{ inputs.run_id || 'previous release' }}\`"
+            echo "- Restore DB: \`${{ inputs.restore_db }}\`"
+            echo "- URL: $HEALTHCHECK_URL"
+          } >> "$GITHUB_STEP_SUMMARY"

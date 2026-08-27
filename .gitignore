@@ -22,7 +22,5 @@ wp-content/themes/*
 !wp-content/themes/cate-theme/
 !wp-content/themes/index.php
 
-
 !wp-content/uploads/
 wp-content/uploads/*
-!wp-content/uploads/20*

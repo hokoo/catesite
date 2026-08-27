@@ -1,0 +1,172 @@
+name: Production Deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  APP_ROOT: /srv/web/kate-tron.com
+  DEPLOY_ROOT: /srv/web/kate-tron
+  HEALTHCHECK_URL: https://kate-tron.com/
+  ORIGIN_HOST: kate-tron.com
+  EXPECTED_SSH_HOSTKEY_SHA256: "SHA256:UZLkwkrHKjpLXEmCXjCy9/yDHsqH4+US5Y4TvOqb/nw"
+  PHP_VERSION: "8.3"
+  NODE_VERSION: "20"
+
+jobs:
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate Composer config
+        run: composer validate --no-check-publish
+
+      - name: Prepare hosts
+        run: echo "127.0.0.1 cate.loc" | sudo tee -a /etc/hosts
+
+      - name: Start local WordPress
+        run: scripts/ci/setup-local-wordpress.sh
+
+      - name: Run e2e tests
+        run: npm run test:e2e
+        env:
+          E2E_BASE_URL: http://cate.loc/
+
+      - name: Show Docker logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      - name: Stop local WordPress
+        if: always()
+        run: docker compose down -v --remove-orphans
+
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs:
+      - test
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          tools: composer:v2
+
+      - name: Install deployment dependencies
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
+      - name: Build production artifact
+        run: |
+          composer validate --no-check-publish
+          composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader
+          cat > index.php <<'PHP'
+          <?php
+          define( 'WP_USE_THEMES', true );
+          require __DIR__ . '/wordpress/wp-blog-header.php';
+          PHP
+
+      - name: Configure SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_USER: ${{ secrets.USER }}
+          DEPLOY_KEY: ${{ secrets.SSH_KEY }}
+        run: |
+          test -n "$DEPLOY_HOST"
+          test -n "$DEPLOY_USER"
+          test -n "$DEPLOY_KEY"
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -T 10 -t ecdsa "$DEPLOY_HOST" > ~/.ssh/known_hosts
+          actual_fingerprint="$(ssh-keygen -lf ~/.ssh/known_hosts | awk 'NR == 1 { print $2 }')"
+          test "$actual_fingerprint" = "$EXPECTED_SSH_HOSTKEY_SHA256"
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Upload release
+        env:
+          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_USER: ${{ secrets.USER }}
+          RELEASE_ID: ${{ github.run_id }}
+        run: |
+          SSH_OPTS="-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          REMOTE_RELEASES_DIR="${DEPLOY_ROOT}/releases"
+          ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$REMOTE_RELEASES_DIR/$RELEASE_ID'"
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.env' \
+            --exclude='wp-config.php' \
+            --exclude='wp-content/uploads/' \
+            --exclude='node_modules/' \
+            --exclude='var/' \
+            --exclude='tests/' \
+            --exclude='playwright-report/' \
+            --exclude='test-results/' \
+            --exclude='docker-compose.yml' \
+            --exclude='install/nginx/' \
+            --exclude='install/php-fpm/error.log' \
+            --exclude='db.sql' \
+            -e "ssh $SSH_OPTS" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$REMOTE_RELEASES_DIR/$RELEASE_ID/"
+
+      - name: Activate release
+        env:
+          DEPLOY_HOST: ${{ secrets.SERVER }}
+          DEPLOY_USER: ${{ secrets.USER }}
+          RELEASE_ID: ${{ github.run_id }}
+          RELEASE_SHA: ${{ github.sha }}
+          RUN_NUMBER: ${{ github.run_number }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          SSH_OPTS="-i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts"
+          REMOTE_SCRIPT="${DEPLOY_ROOT}/releases/${RELEASE_ID}/scripts/deploy/remote-deploy.sh"
+          ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" \
+            "APP_ROOT='$APP_ROOT' DEPLOY_ROOT='$DEPLOY_ROOT' RELEASE_ID='$RELEASE_ID' RELEASE_SHA='$RELEASE_SHA' RUN_NUMBER='$RUN_NUMBER' RUN_ATTEMPT='$RUN_ATTEMPT' HEALTHCHECK_URL='$HEALTHCHECK_URL' ORIGIN_HOST='$ORIGIN_HOST' bash '$REMOTE_SCRIPT'"
+
+      - name: Deployment summary
+        run: |
+          {
+            echo "### Production deployment"
+            echo ""
+            echo "- Release id: \`${{ github.run_id }}\`"
+            echo "- Commit: \`${{ github.sha }}\`"
+            echo "- URL: $HEALTHCHECK_URL"
+          } >> "$GITHUB_STEP_SUMMARY"

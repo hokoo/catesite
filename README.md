@@ -6,6 +6,9 @@ Linux (or WSL), Docker Compose, Make
 ## Notice
 Call all scripts from root project directory.
 
+## Deployment
+See [docs/deployment.md](docs/deployment.md).
+
 ## E2E tests
 Install test dependencies:
 
